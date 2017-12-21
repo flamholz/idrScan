@@ -6,6 +6,8 @@ import argparse
 import os
 import math
 
+from StringIO import StringIO
+
 
 def sequenceIupred(sequence, kind='short'):
     '''
@@ -41,10 +43,11 @@ def readIupred(iupred_file):
         glines = g.read().split('\n')
         glines = [i for i in glines if len(i) > 0]
         glines = [i for i in glines if i[0] != '#']
-        glines = [i.split(' ') for i in glines]
-        glines = [[tryConvert(j) for j in i if len(j) > 0]
-                  for i in glines if len(i) > 0]
-        return glines
+
+    glines = ['pos AA score'] + glines
+    fstring = '\n'.join(glines)
+    fakefile = StringIO(fstring)
+    return pd.read_csv(fakefile, delim_whitespace=True, index_col=0)
 
 
 def tryConvert(arg):
