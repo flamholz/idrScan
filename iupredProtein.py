@@ -6,6 +6,7 @@ import argparse
 import os
 import math
 
+
 def sequenceIupred(sequence, kind='short'):
     '''
     Given a sequence, calculate the IUPRED score of each residue.
@@ -21,28 +22,30 @@ def sequenceIupred(sequence, kind='short'):
     temp_fasta = '_temp.fasta'
     temp_iupred = '_temp.iupred'
 
-    o = open(temp_fasta,'w')
-    o.write('>temp\n%s' % sequence)
-    o.close()
-    os.system("/Users/alecheckert/bin/iupred/iupred %s %s > %s" % (temp_fasta, kind, temp_iupred))
+    with open(temp_fasta, 'w') as outf:
+        outf.write('>temp\n%s' % sequence)
+
+    os.system("iupred %s %s > %s" % (temp_fasta, kind, temp_iupred))
     scores = readIupred(temp_iupred)
     os.system('rm %s' % temp_fasta)
     os.system('rm %s' % temp_iupred)
     return scores
 
+
 def readIupred(iupred_file):
     '''
-    Reads output of the type given by IUPRED. *iupred_file* is a 
+    Reads output of the type given by IUPRED. *iupred_file* is a
     file containing output exactly as given by the *iupred* command.
-
     '''
-    g = open(iupred_file, 'r')
-    glines = g.read().split('\n')
-    glines = [i for i in glines if len(i)>0]
-    glines = [i for i in glines if i[0]!='#']
-    glines = [i.split(' ') for i in glines]
-    glines = [[tryConvert(j) for j in i if len(j)>0] for i in glines if len(i)>0]
-    return glines
+    with open(iupred_file, 'r') as g:
+        glines = g.read().split('\n')
+        glines = [i for i in glines if len(i) > 0]
+        glines = [i for i in glines if i[0] != '#']
+        glines = [i.split(' ') for i in glines]
+        glines = [[tryConvert(j) for j in i if len(j) > 0]
+                  for i in glines if len(i) > 0]
+        return glines
+
 
 def tryConvert(arg):
     '''
@@ -61,9 +64,10 @@ def tryConvert(arg):
     except (AttributeError, TypeError, ValueError) as e3:
         return arg
 
+
 def iupredProtein(protein_file, kind='short', protein_column='protein'):
 	'''
-	Given a file with the entire protein sequences for a list of transcripts,
+    Given a file with the entire protein sequences for a list of transcripts,
 	calculate the mean IUPred score for each protein.
 
 	INPUT
@@ -93,15 +97,22 @@ def iupredProtein(protein_file, kind='short', protein_column='protein'):
 				print "Successfully calculated IUPred scores for %s" % f.ix[i,'description']
 		f.to_csv(protein_file, index=False)
 
+
 if __name__=='__main__':
-	parser = argparse.ArgumentParser(description='calculate IUPred scores for whole protein sequences')
-	parser.add_argument('infile', type=str, help='CSV containing the full protein sequences')
-	parser.add_argument('-p', '--protein_column', type=str, help="name of the column containing the protein sequences in the infile. Default is ``protein''", default='protein')
-	parser.add_argument('-k', '--kind', type=str, help="kind of IUPred score to calculate. default is ``short''", default='short')
-			
+	parser = argparse.ArgumentParser(
+        description='calculate IUPred scores for whole protein sequences')
+	parser.add_argument('infile', 
+        type=str, help='CSV containing the full protein sequences')
+	parser.add_argument('-p',
+        '--protein_column', type=str, 
+        help="name of the column containing the protein sequences in the infile. Default is ``protein''",
+        default='protein')
+	parser.add_argument('-k', '--kind', type=str, 
+        help="kind of IUPred score to calculate. default is ``short''", default='short')
+
 	args = parser.parse_args()
 	try:
 		iupredProtein(args.infile, kind=args.kind, protein_column=args.protein_column)
-	except (TypeError, pd.io.common.CParserError) as e_all:
+	except:
 		print "Could not read the input files."
 		exit(1)
