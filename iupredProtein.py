@@ -101,7 +101,7 @@ def iupredProtein(protein_file, kind='short', protein_column='protein'):
 		f.to_csv(protein_file, index=False)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
 	parser = argparse.ArgumentParser(
         description='calculate IUPred scores for whole protein sequences')
 	parser.add_argument('infile', 
